@@ -8,10 +8,14 @@ use app::app;
 mod state;
 use state::State;
 
+mod github;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "127.0.0.1:3000".parse()?;
-    let state = State::new();
+    let state = State::initial().await;
+
+    println!("Booting initial state: {:#?}", state.debug().await);
 
     let server = Server::bind(&addr).serve(make_service_fn(move |_conn| {
         let state = state.clone();

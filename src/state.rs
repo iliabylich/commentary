@@ -1,5 +1,5 @@
 use chrono::{offset::Utc, DateTime};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -10,12 +10,6 @@ pub(crate) struct State {
 }
 
 impl State {
-    pub(crate) fn new() -> Self {
-        Self {
-            state: Arc::new(RwLock::new(InnerState::new())),
-        }
-    }
-
     pub(crate) async fn push(&self, post_slug: String, comment: Comment) {
         let mut guard = self.state.write().await;
         let comments = guard.data.entry(post_slug).or_insert_with(|| vec![]);
@@ -24,31 +18,39 @@ impl State {
 
     pub(crate) async fn get(&self, post_slug: &str) -> Vec<Comment> {
         let guard = self.state.read().await;
-        let d = guard
+        guard
             .data
             .get(post_slug)
             .map(|comments| comments.to_vec())
-            .unwrap_or_default();
-        d
+            .unwrap_or_default()
+    }
+
+    pub(crate) async fn initial() -> Self {
+        let json = crate::github::read_initial_state().await;
+        let state = serde_json::from_str(&json).unwrap();
+        Self {
+            state: Arc::new(RwLock::new(state)),
+        }
+    }
+
+    pub(crate) async fn debug(&self) -> String {
+        let guard = self.state.read().await;
+        format!("{:?}", *guard)
+    }
+
+    pub(crate) async fn sync(&self) {
+        let guard = self.state.read().await;
+        let content = serde_json::to_string_pretty(&*guard).unwrap();
+        crate::github::update_state(content).await
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct InnerState {
     data: HashMap<String, Vec<Comment>>,
 }
-impl InnerState {
-    fn new() -> Self {
-        Self {
-            data: HashMap::from([(
-                "test-slug".to_string(),
-                vec![Comment::new("me".to_string(), "comment body".to_string())],
-            )]),
-        }
-    }
-}
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub(crate) struct Comment {
     pub(crate) author: String,
     pub(crate) body: String,

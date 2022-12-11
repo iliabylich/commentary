@@ -1,2 +1,4 @@
 /target
 Cargo.lock
+.gist-id
+.github-token

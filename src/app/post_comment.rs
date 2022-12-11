@@ -30,6 +30,7 @@ pub(crate) async fn post_comment(req: Request<Body>, state: State) -> Response<B
     let comment = Comment::new(author, body);
     let json = serde_json::to_string(&comment).unwrap();
     state.push(post_slug, comment).await;
+    state.sync().await;
 
     let mut res = Response::new(Body::empty());
     res.headers_mut()
