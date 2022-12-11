@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css"
+        integrity="sha512-NmLkDIU1C/C88wi324HBc+S2kLhi08PN5GDeUVVVC/BVt/9Izdsc9SVeVfA1UZbY3sHUlDSyRXhCzHfr6hmPPw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        #comment-form {
+            border: 1px solid #AAAAAA;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 10px;
+        }
+
+        #comment-body {
+            min-height: 100px;
+        }
+
+        #comments-list {
+            border: 1px solid #AAAAAA;
+            padding: 10px;
+        }
+
+        .comment {
+            padding: 10px;
+        }
+
+        .comment-body {
+            font-family: monospace;
+        }
+
+    </style>
+</head>
+
+<body>
+    <form id="comment-form">
+        <input id="comment-author" type="text" name="author" placeholder="Your name" />
+        <textarea id="comment-body" name="body" placeholder="Your comment"></textarea>
+        <input id="comment-submit" type="submit" />
+    </form>
+
+    <div id="comments-list"></div>
+
+    <script type="text/javascript">
+        const formEl = document.getElementById('comment-form');
+        const commentsEl = document.getElementById('comments-list');
+        const slug = new URLSearchParams(document.location.search).get('slug');
+
+        fetch(`/comments${document.location.search}`)
+            .then(res => res.json())
+            .then(comments => renderComments(comments));
+
+        function renderComments(comments) {
+            for (const comment of comments) {
+                prependComment(comment)
+            }
+        }
+
+        function prependComment(comment) {
+            const { author, body, date: strDate } = comment;
+            const date = new Date(strDate);
+
+            const wrapperEl = document.createElement('div');
+            wrapperEl.classList.add('comment');
+
+            const dateEl = createElement('div', 'comment-date', date.toLocaleString());
+            const authorEl = createElement('div', 'comment-author', `By: ${author}`);
+            const bodyEl = createElement('pre', 'comment-body', body);
+
+            wrapperEl.appendChild(authorEl);
+            wrapperEl.appendChild(dateEl);
+            wrapperEl.appendChild(bodyEl);
+
+            commentsEl.prepend(wrapperEl);
+        }
+
+        function createElement(tagName, className, content) {
+            const el = document.createElement(tagName);
+            el.classList.add(className);
+            el.textContent = content;
+            return el;
+        }
+
+        function onSubmit(e) {
+            e.preventDefault();
+            const formData = new FormData(formEl);
+            const author = formData.get('author');
+            const body = formData.get('body');
+            fetch('/comment', { method: 'POST', body: JSON.stringify({ author, body, post_slug: slug }) })
+                .then(res => res.json())
+                .then(comment => {
+                    prependComment(comment);
+                    formEl.reset();
+                })
+        }
+        formEl.addEventListener('submit', onSubmit);
+    </script>
+</body>
+
+</html>
