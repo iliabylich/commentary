@@ -3,7 +3,6 @@ use hyper::{
     header::{HeaderValue, CONTENT_TYPE},
     Body, Request, Response,
 };
-use url::Url;
 
 pub(crate) async fn get_comments(req: Request<Body>, state: State) -> Response<Body> {
     let mut res = Response::new(Body::empty());
@@ -11,18 +10,22 @@ pub(crate) async fn get_comments(req: Request<Body>, state: State) -> Response<B
         .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
     let post_slug = parse_slug(&req);
-    let comments = state.get(&post_slug).await;
+    let comments = state.get(post_slug).await;
     *res.body_mut() = Body::from(serde_json::to_string(&comments).unwrap());
     res
 }
 
-fn parse_slug(req: &Request<Body>) -> String {
-    let uri = format!("http://example.com{}", req.uri().to_string());
-    let url = Url::parse(&uri).unwrap();
-    for (key, value) in url.query_pairs() {
-        if key == "slug" {
-            return value.into_owned();
+fn parse_slug(req: &Request<Body>) -> &str {
+    for param in req.uri().query().unwrap_or_default().split("&") {
+        let mut parts = param.split("=");
+        let key = parts.next();
+        let value = parts.next();
+
+        match (key, value) {
+            (Some("slug"), Some(value)) => return value,
+            _ => {}
         }
     }
-    String::from("")
+
+    ""
 }
