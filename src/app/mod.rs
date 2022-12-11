@@ -19,25 +19,26 @@ pub(crate) async fn app(
     req: Request<Body>,
     state: Arc<Mutex<State>>,
 ) -> Result<Response<Body>, Infallible> {
-    let res = router(&req, state);
-
     eprintln!(
-        "Request: {:?} {:?}; Response: {:?}",
+        "Request: {:?} {:?}",
         req.method(),
         req.uri().path_and_query(),
-        res.status()
     );
+
+    let res = router(req, state).await;
+
+    eprintln!("Response: {:?}", res.status());
 
     Ok(res)
 }
 
-fn router(req: &Request<Body>, state: Arc<Mutex<State>>) -> Response<Body> {
+async fn router(req: Request<Body>, state: Arc<Mutex<State>>) -> Response<Body> {
     match (req.method(), req.uri().path()) {
-        (&Method::GET, "/") => alive(&req, state),
+        (&Method::GET, "/") => alive(req, state),
 
-        (&Method::POST, "/comment") => post_comment(&req, state),
+        (&Method::POST, "/comment") => post_comment(req, state).await,
 
-        (&Method::GET, "/comments") => get_comments(&req, state),
+        (&Method::GET, "/comments") => get_comments(req, state),
 
         (&Method::GET, "/frame") => {
             todo!()
