@@ -1,15 +1,19 @@
 use crate::state::State;
 use hyper::{header::CONTENT_TYPE, Body, Request, Response};
 
-pub(crate) async fn get_comments(req: Request<Body>, state: State) -> Response<Body> {
+pub(crate) async fn get_comments(
+    req: Request<Body>,
+    state: State,
+) -> Result<Response<Body>, Box<dyn std::error::Error>> {
     let slug = parse_slug(&req);
     let comments = state.get(slug).await;
-    let body = serde_json::to_string(&comments).unwrap();
+    let body = serde_json::to_string(&comments)?;
 
-    Response::builder()
+    let res = Response::builder()
         .header(CONTENT_TYPE, "application/json")
-        .body(Body::from(body))
-        .unwrap()
+        .body(Body::from(body))?;
+
+    Ok(res)
 }
 
 fn parse_slug(req: &Request<Body>) -> &str {

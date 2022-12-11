@@ -25,12 +25,12 @@ impl State {
             .unwrap_or_default()
     }
 
-    pub(crate) async fn initial() -> Self {
-        let json = crate::github::read_initial_state().await;
-        let state = serde_json::from_str(&json).unwrap();
-        Self {
+    pub(crate) async fn initial() -> Result<Self, Box<dyn std::error::Error>> {
+        let json = crate::github::read_initial_state().await?;
+        let state = serde_json::from_str(&json)?;
+        Ok(Self {
             state: Arc::new(RwLock::new(state)),
-        }
+        })
     }
 
     pub(crate) async fn debug(&self) -> String {
@@ -38,10 +38,11 @@ impl State {
         format!("{:?}", *guard)
     }
 
-    pub(crate) async fn sync(&self) {
+    pub(crate) async fn sync(&self) -> Result<(), Box<dyn std::error::Error>> {
         let guard = self.state.read().await;
-        let content = serde_json::to_string_pretty(&*guard).unwrap();
-        crate::github::update_state(content).await
+        let content = serde_json::to_string_pretty(&*guard)?;
+        crate::github::update_state(content).await?;
+        Ok(())
     }
 }
 

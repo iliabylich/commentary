@@ -13,7 +13,7 @@ mod github;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "127.0.0.1:3000".parse()?;
-    let state = State::initial().await;
+    let state = State::initial().await?;
 
     println!("Booting initial state: {:#?}", state.debug().await);
 

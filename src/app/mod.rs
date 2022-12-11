@@ -1,5 +1,5 @@
 use crate::state::State;
-use hyper::{Body, Method, Request, Response, StatusCode};
+use hyper::{header::CONTENT_TYPE, Body, Method, Request, Response, StatusCode};
 use std::convert::Infallible;
 
 mod alive;
@@ -21,14 +21,28 @@ pub(crate) async fn app(req: Request<Body>, state: State) -> Result<Response<Bod
         req.uri().path_and_query(),
     );
 
-    let res = router(req, state).await;
+    let res = match router(req, state).await {
+        Ok(res) => res,
+        Err(err) => {
+            eprintln!("Internal Error: {:?}", err);
+
+            Response::builder()
+                .header(CONTENT_TYPE, "application/json")
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from("{}"))
+                .unwrap()
+        }
+    };
 
     eprintln!("Response: {:?}", res.status());
 
     Ok(res)
 }
 
-async fn router(req: Request<Body>, state: State) -> Response<Body> {
+async fn router(
+    req: Request<Body>,
+    state: State,
+) -> Result<Response<Body>, Box<dyn std::error::Error>> {
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/") => alive(req, state),
 
@@ -38,9 +52,9 @@ async fn router(req: Request<Body>, state: State) -> Response<Body> {
 
         (&Method::GET, "/embed") => embed(req, state),
 
-        _ => Response::builder()
+        _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
             .body(Body::empty())
-            .unwrap(),
+            .unwrap()),
     }
 }
