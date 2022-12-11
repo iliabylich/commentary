@@ -13,32 +13,13 @@ mod get_comments;
 use get_comments::get_comments;
 
 mod post_comment;
-// use post_comment::post_comment;
+use post_comment::post_comment;
 
 pub(crate) async fn app(
     req: Request<Body>,
     state: Arc<Mutex<State>>,
 ) -> Result<Response<Body>, Infallible> {
-    let mut res;
-
-    match (req.method(), req.uri().path()) {
-        (&Method::GET, "/") => res = alive(&req, state),
-
-        (&Method::POST, "/comment") => {
-            todo!()
-        }
-
-        (&Method::GET, "/comments") => res = get_comments(&req, state),
-
-        (&Method::GET, "/frame") => {
-            todo!()
-        }
-
-        _ => {
-            res = Response::new(Body::empty());
-            *res.status_mut() = StatusCode::NOT_FOUND;
-        }
-    }
+    let res = router(&req, state);
 
     eprintln!(
         "Request: {:?} {:?}; Response: {:?}",
@@ -48,4 +29,24 @@ pub(crate) async fn app(
     );
 
     Ok(res)
+}
+
+fn router(req: &Request<Body>, state: Arc<Mutex<State>>) -> Response<Body> {
+    match (req.method(), req.uri().path()) {
+        (&Method::GET, "/") => alive(&req, state),
+
+        (&Method::POST, "/comment") => post_comment(&req, state),
+
+        (&Method::GET, "/comments") => get_comments(&req, state),
+
+        (&Method::GET, "/frame") => {
+            todo!()
+        }
+
+        _ => {
+            let mut res = Response::new(Body::empty());
+            *res.status_mut() = StatusCode::NOT_FOUND;
+            res
+        }
+    }
 }
