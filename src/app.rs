@@ -1,8 +1,14 @@
+use crate::state::State;
 use hyper::{Body, Method, Request, Response, StatusCode};
 use std::convert::Infallible;
+use std::sync::{Arc, Mutex};
 
-pub(crate) async fn app(req: Request<Body>) -> Result<Response<Body>, Infallible> {
+pub(crate) async fn app(
+    req: Request<Body>,
+    state: Arc<Mutex<State>>,
+) -> Result<Response<Body>, Infallible> {
     let mut response = Response::new(Body::empty());
+    println!("{:?}", state);
 
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/") => *response.body_mut() = Body::from("Alive"),
