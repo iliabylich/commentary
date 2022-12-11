@@ -34,7 +34,7 @@ async fn router(req: Request<Body>, state: State) -> Response<Body> {
 
         (&Method::POST, "/comment") => post_comment(req, state).await,
 
-        (&Method::GET, "/comments") => get_comments(req, state),
+        (&Method::GET, "/comments") => get_comments(req, state).await,
 
         (&Method::GET, "/embed") => embed(req, state),
 

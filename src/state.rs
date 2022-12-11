@@ -1,33 +1,35 @@
 use chrono::{offset::Utc, DateTime};
 use serde::Serialize;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[derive(Clone)]
 pub(crate) struct State {
-    state: Arc<Mutex<InnerState>>,
+    state: Arc<RwLock<InnerState>>,
 }
 
 impl State {
     pub(crate) fn new() -> Self {
         Self {
-            state: Arc::new(Mutex::new(InnerState::new())),
+            state: Arc::new(RwLock::new(InnerState::new())),
         }
     }
 
-    pub(crate) fn push(&self, post_slug: String, comment: Comment) {
-        let mut state = self.state.lock().unwrap();
-        let comments = state.data.entry(post_slug).or_insert_with(|| vec![]);
-        comments.push(comment)
+    pub(crate) async fn push(&self, post_slug: String, comment: Comment) {
+        let mut guard = self.state.write().await;
+        let comments = guard.data.entry(post_slug).or_insert_with(|| vec![]);
+        comments.push(comment);
     }
 
-    pub(crate) fn get(&self, post_slug: &str) -> Vec<Comment> {
-        let state = self.state.lock().unwrap();
-        state
+    pub(crate) async fn get(&self, post_slug: &str) -> Vec<Comment> {
+        let guard = self.state.read().await;
+        let d = guard
             .data
             .get(post_slug)
             .map(|comments| comments.to_vec())
-            .unwrap_or_default()
+            .unwrap_or_default();
+        d
     }
 }
 

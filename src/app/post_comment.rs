@@ -27,7 +27,7 @@ pub(crate) async fn post_comment(req: Request<Body>, state: State) -> Response<B
         Err(e) => return internal_server_error(e),
     };
 
-    state.push(post_slug, Comment::new(author, body));
+    state.push(post_slug, Comment::new(author, body)).await;
 
     let mut res = Response::new(Body::empty());
     res.headers_mut()

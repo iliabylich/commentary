@@ -5,13 +5,13 @@ use hyper::{
 };
 use url::Url;
 
-pub(crate) fn get_comments(req: Request<Body>, state: State) -> Response<Body> {
+pub(crate) async fn get_comments(req: Request<Body>, state: State) -> Response<Body> {
     let mut res = Response::new(Body::empty());
     res.headers_mut()
         .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
     let post_slug = parse_slug(&req);
-    let comments = state.get(&post_slug);
+    let comments = state.get(&post_slug).await;
     *res.body_mut() = Body::from(serde_json::to_string(&comments).unwrap());
     res
 }
