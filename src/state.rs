@@ -10,17 +10,17 @@ pub(crate) struct State {
 }
 
 impl State {
-    pub(crate) async fn push(&self, post_slug: String, comment: Comment) {
+    pub(crate) async fn push(&self, slug: String, comment: Comment) {
         let mut guard = self.state.write().await;
-        let comments = guard.data.entry(post_slug).or_insert_with(|| vec![]);
+        let comments = guard.data.entry(slug).or_insert_with(|| vec![]);
         comments.push(comment);
     }
 
-    pub(crate) async fn get(&self, post_slug: &str) -> Vec<Comment> {
+    pub(crate) async fn get(&self, slug: &str) -> Vec<Comment> {
         let guard = self.state.read().await;
         guard
             .data
-            .get(post_slug)
+            .get(slug)
             .map(|comments| comments.to_vec())
             .unwrap_or_default()
     }

@@ -38,10 +38,9 @@ async fn router(req: Request<Body>, state: State) -> Response<Body> {
 
         (&Method::GET, "/embed") => embed(req, state),
 
-        _ => {
-            let mut res = Response::new(Body::empty());
-            *res.status_mut() = StatusCode::NOT_FOUND;
-            res
-        }
+        _ => Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .body(Body::empty())
+            .unwrap(),
     }
 }

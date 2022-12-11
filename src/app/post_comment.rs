@@ -1,8 +1,5 @@
 use crate::state::{Comment, State};
-use hyper::{
-    header::{HeaderValue, CONTENT_TYPE},
-    Body, Request, Response, StatusCode,
-};
+use hyper::{header::CONTENT_TYPE, Body, Request, Response, StatusCode};
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -13,10 +10,7 @@ struct FormData {
 }
 
 pub(crate) async fn post_comment(req: Request<Body>, state: State) -> Response<Body> {
-    let body = match hyper::body::to_bytes(req.into_body()).await {
-        Ok(bytes) => bytes,
-        Err(e) => return internal_server_error(e),
-    };
+    let body = hyper::body::to_bytes(req.into_body()).await.unwrap();
 
     let FormData {
         post_slug,
@@ -32,20 +26,19 @@ pub(crate) async fn post_comment(req: Request<Body>, state: State) -> Response<B
     state.push(post_slug, comment).await;
     state.sync().await;
 
-    let mut res = Response::new(Body::empty());
-    res.headers_mut()
-        .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    *res.status_mut() = StatusCode::CREATED;
-    *res.body_mut() = Body::from(json);
-    res
+    Response::builder()
+        .header(CONTENT_TYPE, "application/json")
+        .status(StatusCode::CREATED)
+        .body(Body::from(json))
+        .unwrap()
 }
 
 fn internal_server_error<E: std::fmt::Debug>(e: E) -> Response<Body> {
     eprintln!("Internal Error: {:?}", e);
-    let mut res = Response::new(Body::empty());
-    res.headers_mut()
-        .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    *res.body_mut() = Body::from("{}");
-    *res.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
-    res
+
+    Response::builder()
+        .header(CONTENT_TYPE, "application/json")
+        .status(StatusCode::INTERNAL_SERVER_ERROR)
+        .body(Body::from("{}"))
+        .unwrap()
 }
