@@ -1,7 +1,6 @@
 use crate::state::State;
 use hyper::{Body, Method, Request, Response, StatusCode};
 use std::convert::Infallible;
-use std::sync::{Arc, Mutex};
 
 mod alive;
 use alive::alive;
@@ -15,10 +14,7 @@ use get_comments::get_comments;
 mod post_comment;
 use post_comment::post_comment;
 
-pub(crate) async fn app(
-    req: Request<Body>,
-    state: Arc<Mutex<State>>,
-) -> Result<Response<Body>, Infallible> {
+pub(crate) async fn app(req: Request<Body>, state: State) -> Result<Response<Body>, Infallible> {
     eprintln!(
         "Request: {:?} {:?}",
         req.method(),
@@ -32,7 +28,7 @@ pub(crate) async fn app(
     Ok(res)
 }
 
-async fn router(req: Request<Body>, state: Arc<Mutex<State>>) -> Response<Body> {
+async fn router(req: Request<Body>, state: State) -> Response<Body> {
     match (req.method(), req.uri().path()) {
         (&Method::GET, "/") => alive(req, state),
 

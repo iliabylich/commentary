@@ -4,7 +4,6 @@ use hyper::{
     Body, Request, Response, StatusCode,
 };
 use serde::Deserialize;
-use std::sync::{Arc, Mutex};
 
 #[derive(Deserialize, Debug)]
 struct FormData {
@@ -13,7 +12,7 @@ struct FormData {
     body: String,
 }
 
-pub(crate) async fn post_comment(req: Request<Body>, state: Arc<Mutex<State>>) -> Response<Body> {
+pub(crate) async fn post_comment(req: Request<Body>, state: State) -> Response<Body> {
     let body = match hyper::body::to_bytes(req.into_body()).await {
         Ok(bytes) => bytes,
         Err(e) => return internal_server_error(e),
@@ -28,10 +27,7 @@ pub(crate) async fn post_comment(req: Request<Body>, state: Arc<Mutex<State>>) -
         Err(e) => return internal_server_error(e),
     };
 
-    {
-        let mut state = state.lock().unwrap();
-        state.push(post_slug, Comment::new(author, body));
-    }
+    state.push(post_slug, Comment::new(author, body));
 
     let mut res = Response::new(Body::empty());
     res.headers_mut()

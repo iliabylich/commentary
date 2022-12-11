@@ -1,7 +1,6 @@
 use hyper::service::{make_service_fn, service_fn};
 use hyper::Server;
 use std::convert::Infallible;
-use std::sync::{Arc, Mutex};
 
 mod app;
 use app::app;
@@ -12,7 +11,7 @@ use state::State;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "127.0.0.1:3000".parse()?;
-    let state = Arc::new(Mutex::new(State::new()));
+    let state = State::new();
 
     let server = Server::bind(&addr).serve(make_service_fn(move |_conn| {
         let state = state.clone();
