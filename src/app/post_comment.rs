@@ -27,13 +27,15 @@ pub(crate) async fn post_comment(req: Request<Body>, state: State) -> Response<B
         Err(e) => return internal_server_error(e),
     };
 
-    state.push(post_slug, Comment::new(author, body)).await;
+    let comment = Comment::new(author, body);
+    let json = serde_json::to_string(&comment).unwrap();
+    state.push(post_slug, comment).await;
 
     let mut res = Response::new(Body::empty());
     res.headers_mut()
         .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     *res.status_mut() = StatusCode::CREATED;
-    *res.body_mut() = Body::from("{}");
+    *res.body_mut() = Body::from(json);
     res
 }
 
