@@ -6,8 +6,8 @@ use std::sync::{Arc, Mutex};
 mod alive;
 use alive::alive;
 
-mod frame;
-// use frame::frame;
+mod embed;
+use embed::embed;
 
 mod get_comments;
 use get_comments::get_comments;
@@ -40,9 +40,7 @@ async fn router(req: Request<Body>, state: Arc<Mutex<State>>) -> Response<Body> 
 
         (&Method::GET, "/comments") => get_comments(req, state),
 
-        (&Method::GET, "/frame") => {
-            todo!()
-        }
+        (&Method::GET, "/embed") => embed(req, state),
 
         _ => {
             let mut res = Response::new(Body::empty());
