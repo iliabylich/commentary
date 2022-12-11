@@ -11,16 +11,8 @@ pub(crate) fn get_comments(req: &Request<Body>, state: Arc<Mutex<State>>) -> Res
     res.headers_mut()
         .insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
-    let uri = format!("http://example.com{}", req.uri().to_string());
-    let url = Url::parse(&uri).unwrap();
-    let mut slug = None;
-    for (key, value) in url.query_pairs() {
-        if key == "slug" {
-            slug = Some(value);
-        }
-    }
-    if let Some(slug) = slug {
-        if let Some(comments) = state.lock().unwrap().posts.get(slug.as_ref()) {
+    if let Some(slug) = parse_slug(req) {
+        if let Some(comments) = state.lock().unwrap().posts.get(&slug) {
             *res.body_mut() = Body::from(serde_json::to_string(comments).unwrap());
             return res;
         }
@@ -28,4 +20,15 @@ pub(crate) fn get_comments(req: &Request<Body>, state: Arc<Mutex<State>>) -> Res
 
     *res.body_mut() = Body::from("[]");
     res
+}
+
+fn parse_slug(req: &Request<Body>) -> Option<String> {
+    let uri = format!("http://example.com{}", req.uri().to_string());
+    let url = Url::parse(&uri).ok()?;
+    for (key, value) in url.query_pairs() {
+        if key == "slug" {
+            return Some(value.into_owned());
+        }
+    }
+    None
 }
