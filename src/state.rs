@@ -10,7 +10,10 @@ pub(crate) struct State {
 impl State {
     pub(crate) fn new() -> Self {
         Self {
-            posts: HashMap::new(),
+            posts: HashMap::from([(
+                "test-slug".to_string(),
+                vec![Comment::new("me".to_string(), "comment body".to_string())],
+            )]),
         }
     }
 
