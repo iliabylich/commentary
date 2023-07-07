@@ -4,6 +4,7 @@ use tokio::sync::OnceCell;
 #[serde(rename_all = "camelCase")]
 pub(crate) struct Config {
     pub(crate) database_path: String,
+    pub(crate) listen_on: u16,
 }
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();

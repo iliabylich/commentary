@@ -1,3 +1,4 @@
 {
-    "databasePath": "/data/commentary.sqlite3?mode=rwc"
+    "databasePath": "/data/commentary.sqlite3?mode=rwc",
+    "listenOn": 3000
 }

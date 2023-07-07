@@ -22,8 +22,8 @@ impl Database {
         Self { pool }
     }
 
-    pub(crate) async fn create_comment(&self, author: &str, body: &str) {
-        sqlx::query(
+    pub(crate) async fn create_comment(&self, author: &str, body: &str) -> Comment {
+        let commant_id = sqlx::query(
             r#"
             INSERT INTO comments (author, body)
             VALUES (?, ?)
@@ -33,7 +33,19 @@ impl Database {
         .bind(body)
         .execute(&self.pool)
         .await
-        .expect("Failed to insert a comment");
+        .expect("Failed to insert a comment")
+        .last_insert_rowid();
+
+        sqlx::query_as::<_, Comment>(
+            r#"
+            SELECT * FROM comments
+            WHERE id = ?
+            "#,
+        )
+        .bind(commant_id)
+        .fetch_one(&self.pool)
+        .await
+        .expect("Failed to fetch comment")
     }
 
     pub(crate) async fn get_comments(&self) -> Vec<Comment> {
