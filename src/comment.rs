@@ -1,0 +1,28 @@
+use crate::database::Database;
+
+#[derive(sqlx::FromRow, Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub(crate) struct Comment {
+    pub(crate) id: i64,
+    pub(crate) author: String,
+    pub(crate) body: String,
+    pub(crate) created_at: chrono::DateTime<chrono::Utc>,
+}
+
+const CRETE_COMMENTS_TABLE_SQL: &str = r#"
+    CREATE TABLE IF NOT EXISTS comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        author TEXT NOT NULL,
+        body TEXT NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+"#;
+
+impl Comment {
+    pub(crate) async fn create_table(database: &Database) {
+        sqlx::query(CRETE_COMMENTS_TABLE_SQL)
+            .execute(&database.pool)
+            .await
+            .expect("failed to create `comments` table");
+        println!("Created `comments` table");
+    }
+}

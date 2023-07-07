@@ -1,6 +1,6 @@
 use sqlx::sqlite::SqlitePool;
 
-use crate::config::Config;
+use crate::{comment::Comment, config::Config};
 
 #[derive(Clone, Debug)]
 pub(crate) struct Database {
@@ -20,5 +20,26 @@ impl Database {
         println!("Connected to sqlite");
 
         Self { pool }
+    }
+
+    pub(crate) async fn create_comment(&self, author: &str, body: &str) {
+        sqlx::query(
+            r#"
+            INSERT INTO comments (author, body)
+            VALUES (?, ?)
+        "#,
+        )
+        .bind(author)
+        .bind(body)
+        .execute(&self.pool)
+        .await
+        .expect("Failed to insert a comment");
+    }
+
+    pub(crate) async fn get_comments(&self) -> Vec<Comment> {
+        sqlx::query_as::<_, Comment>("SELECT * FROM comments")
+            .fetch_all(&self.pool)
+            .await
+            .expect("Failed to fetch comments")
     }
 }
