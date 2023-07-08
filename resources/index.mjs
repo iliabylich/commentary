@@ -1,4 +1,4 @@
-import { h, render } from 'https://unpkg.com/preact@10.15.1/dist/preact.module.js?module';
+import { h, render, Component } from 'https://unpkg.com/preact@10.15.1/dist/preact.module.js?module';
 import htm from 'https://esm.sh/htm';
 
 const html = htm.bind(h);
@@ -22,14 +22,23 @@ function Comment(props) {
     </div>`;
 }
 
-function App(props) {
-    return html`<div class="container-fluid">
-        ${props.comments.map(comment => html`<${Comment} comment=${comment} />`)}
-    </h1>`;
+class App extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { comments: [] };
+    }
+
+    componentDidMount() {
+        fetch('/commentary/comments', { headers: { 'Content-Type': 'application/json' } })
+            .then(res => res.json())
+            .then(comments => this.setState({ comments }));
+    }
+
+    render() {
+        return html`<div class="container-fluid">
+            ${this.state.comments.map(comment => html`<${Comment} comment=${comment} />`)}
+        </h1>`;
+    }
 }
 
-fetch('/commentary/comments', { headers: { 'Content-Type': 'application/json' } })
-    .then(res => res.json())
-    .then(comments => {
-        render(html`<${App} comments=${comments} />`, document.body);
-    });
+render(html`<${App} />`, document.body);
