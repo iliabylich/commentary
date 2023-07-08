@@ -31,8 +31,7 @@ impl Resource {
 #[derive(Debug, Hash, PartialEq, Eq, Clone)]
 pub(crate) enum ResourceId {
     IndexHtml,
-    IndexJs,
-    IndexCss,
+    IndexMjs,
 }
 
 #[derive(Debug, Clone)]
@@ -51,17 +50,10 @@ impl Resources {
                 ),
             ),
             (
-                ResourceId::IndexJs,
+                ResourceId::IndexMjs,
                 Resource::new(
-                    String::from("resources/index.js"),
-                    include_str!("../resources/index.js"),
-                ),
-            ),
-            (
-                ResourceId::IndexCss,
-                Resource::new(
-                    String::from("resources/index.css"),
-                    include_str!("../resources/index.css"),
+                    String::from("resources/index.mjs"),
+                    include_str!("../resources/index.mjs"),
                 ),
             ),
         ]);

@@ -18,8 +18,7 @@ impl Web {
                 "/commentary",
                 Router::new()
                     .route("/index", get(Self::index_html))
-                    .route("/index.css", get(Self::index_css))
-                    .route("/index.js", get(Self::index_js))
+                    .route("/index.mjs", get(Self::index_mjs))
                     .route("/comments", get(Self::get_comments))
                     .route("/comment", post(Self::comment)),
             )
@@ -39,13 +38,8 @@ impl Web {
         Html(html)
     }
 
-    async fn index_css(State(state): State<AppState>) -> impl IntoResponse {
-        let css = state.resources.get(ResourceId::IndexCss).render().await;
-        (StatusCode::OK, [("content-type", "text/css")], css)
-    }
-
-    async fn index_js(State(state): State<AppState>) -> impl IntoResponse {
-        let js = state.resources.get(ResourceId::IndexJs).render().await;
+    async fn index_mjs(State(state): State<AppState>) -> impl IntoResponse {
+        let js = state.resources.get(ResourceId::IndexMjs).render().await;
         (StatusCode::OK, [("content-type", "text/javascript")], js)
     }
 
