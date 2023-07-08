@@ -13,8 +13,13 @@ pub(crate) struct Web;
 impl Web {
     pub(crate) async fn spawn(state: AppState) {
         let app = Router::new()
-            .route("/comments", get(Self::get_comments))
-            .route("/comment", post(Self::comment))
+            .nest(
+                "/commentary",
+                Router::new()
+                    .route("/index", get(Self::index))
+                    .route("/comments", get(Self::get_comments))
+                    .route("/comment", post(Self::comment)),
+            )
             .with_state(state);
 
         let addr = SocketAddr::from(([0, 0, 0, 0], Config::global().listen_on));
@@ -26,8 +31,13 @@ impl Web {
             .expect("Failed to spawn web server");
     }
 
-    async fn get_comments(State(state): State<AppState>) -> Html<String> {
+    async fn index() -> Html<String> {
         Html("".to_string())
+    }
+
+    async fn get_comments(State(state): State<AppState>) -> Json<Vec<Comment>> {
+        let comments = state.database.get_comments().await;
+        Json(comments)
     }
 
     async fn comment(
