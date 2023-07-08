@@ -1,6 +1,7 @@
 use axum::{
     extract::State,
-    response::{Html, Json},
+    http::StatusCode,
+    response::{Html, IntoResponse, Json},
     routing::{get, post},
     Router, Server,
 };
@@ -16,7 +17,9 @@ impl Web {
             .nest(
                 "/commentary",
                 Router::new()
-                    .route("/index", get(Self::index))
+                    .route("/index", get(Self::index_html))
+                    .route("/index.css", get(Self::index_css))
+                    .route("/index.js", get(Self::index_js))
                     .route("/comments", get(Self::get_comments))
                     .route("/comment", post(Self::comment)),
             )
@@ -31,9 +34,19 @@ impl Web {
             .expect("Failed to spawn web server");
     }
 
-    async fn index(State(state): State<AppState>) -> Html<String> {
+    async fn index_html(State(state): State<AppState>) -> Html<String> {
         let html = state.resources.get(ResourceId::IndexHtml).render().await;
         Html(html)
+    }
+
+    async fn index_css(State(state): State<AppState>) -> impl IntoResponse {
+        let css = state.resources.get(ResourceId::IndexCss).render().await;
+        (StatusCode::OK, [("content-type", "text/css")], css)
+    }
+
+    async fn index_js(State(state): State<AppState>) -> impl IntoResponse {
+        let js = state.resources.get(ResourceId::IndexJs).render().await;
+        (StatusCode::OK, [("content-type", "text/javascript")], js)
     }
 
     async fn get_comments(State(state): State<AppState>) -> Json<Vec<Comment>> {
