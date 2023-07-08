@@ -31,8 +31,9 @@ impl Web {
             .expect("Failed to spawn web server");
     }
 
-    async fn index() -> Html<String> {
-        Html("".to_string())
+    async fn index() -> Html<&'static str> {
+        static INDEX: &str = include_str!("../views/index.html");
+        Html(INDEX)
     }
 
     async fn get_comments(State(state): State<AppState>) -> Json<Vec<Comment>> {
