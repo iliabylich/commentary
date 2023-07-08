@@ -6,7 +6,7 @@ use axum::{
 };
 use std::net::SocketAddr;
 
-use crate::{comment::Comment, config::Config, state::AppState};
+use crate::{comment::Comment, config::Config, resource::ResourceId, state::AppState};
 
 pub(crate) struct Web;
 
@@ -31,9 +31,9 @@ impl Web {
             .expect("Failed to spawn web server");
     }
 
-    async fn index() -> Html<&'static str> {
-        static INDEX: &str = include_str!("../views/index.html");
-        Html(INDEX)
+    async fn index(State(state): State<AppState>) -> Html<String> {
+        let html = state.resources.get(ResourceId::IndexHtml).render().await;
+        Html(html)
     }
 
     async fn get_comments(State(state): State<AppState>) -> Json<Vec<Comment>> {
