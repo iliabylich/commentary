@@ -3,6 +3,7 @@ import htm from 'https://esm.sh/htm';
 
 const html = htm.bind(h);
 const renderMarkdown = window.downa.render;
+const postId = new URLSearchParams(document.location.search).get('post_id')
 
 const formatDate = (date) => {
     const d = new Date(date);
@@ -10,7 +11,7 @@ const formatDate = (date) => {
 }
 
 const loadComments = async () => {
-    const res = await fetch('/commentary/comments', { headers: { 'Content-Type': 'application/json' } });
+    const res = await fetch(`/commentary/comments?postId=${postId}`, { headers: { 'Content-Type': 'application/json' } });
     return await res.json();
 };
 
@@ -18,7 +19,7 @@ const createComment = async (comment) => {
     const res = await fetch('/commentary/comment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(comment)
+        body: JSON.stringify({ ...comment, postId })
     });
     return await res.json();
 };

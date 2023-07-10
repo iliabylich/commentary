@@ -1,5 +1,5 @@
 use axum::{
-    extract::State,
+    extract::{Query, State},
     http::StatusCode,
     response::{Html, IntoResponse, Json},
     routing::{get, post},
@@ -43,8 +43,11 @@ impl Web {
         (StatusCode::OK, [("content-type", "text/javascript")], js)
     }
 
-    async fn get_comments(State(state): State<AppState>) -> Json<Vec<Comment>> {
-        let comments = state.database.get_comments().await;
+    async fn get_comments(
+        State(state): State<AppState>,
+        query: Query<PostId>,
+    ) -> Json<Vec<Comment>> {
+        let comments = state.database.get_comments(&query.post_id).await;
         Json(comments)
     }
 
@@ -54,14 +57,22 @@ impl Web {
     ) -> Json<Comment> {
         let comment = state
             .database
-            .create_comment(&payload.author, &payload.body)
+            .create_comment(&payload.author, &payload.body, &payload.post_id)
             .await;
         Json(comment)
     }
 }
 
 #[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct CreateComment {
     pub(crate) author: String,
     pub(crate) body: String,
+    pub(crate) post_id: String,
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct PostId {
+    pub(crate) post_id: String,
 }

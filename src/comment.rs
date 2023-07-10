@@ -6,6 +6,7 @@ pub(crate) struct Comment {
     pub(crate) author: String,
     pub(crate) body: String,
     pub(crate) created_at: chrono::DateTime<chrono::Utc>,
+    pub(crate) post_id: String,
 }
 
 const CRETE_COMMENTS_TABLE_SQL: &str = r#"
@@ -13,7 +14,8 @@ const CRETE_COMMENTS_TABLE_SQL: &str = r#"
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         author TEXT NOT NULL,
         body TEXT NOT NULL,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        post_id TEXT NOT NULL
     )
 "#;
 
