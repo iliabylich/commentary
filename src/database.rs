@@ -49,7 +49,7 @@ impl Database {
     }
 
     pub(crate) async fn get_comments(&self) -> Vec<Comment> {
-        sqlx::query_as::<_, Comment>("SELECT * FROM comments")
+        sqlx::query_as::<_, Comment>("SELECT * FROM comments ORDER BY created_at DESC")
             .fetch_all(&self.pool)
             .await
             .expect("Failed to fetch comments")
