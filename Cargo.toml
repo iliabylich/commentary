@@ -14,3 +14,17 @@ serde = {version = "1.0", features = ["derive"]}
 serde_json = "1.0"
 sqlx = {version = "0.6", features = ["sqlite", "runtime-tokio-rustls", "chrono"]}
 tokio = {version = "1", features = ["full"]}
+
+[package.metadata.deb]
+assets = [
+  ["target/release/commentary", "usr/bin/commentary", "755"],
+  ["config.example.json", "etc/commentary.json", "644"],
+  ["debian/commentary.service", "lib/systemd/system/commentary.service", "644"],
+]
+copyright = "2023, Ilya Bylich."
+depends = "$auto, systemd"
+extended-description = "Commentary is a simple comment system for static websites."
+maintainer = "Commentary developer <ibylich@gmail.com>"
+maintainer-scripts = "debian/scripts"
+priority = "optional"
+section = "admin"

@@ -1,0 +1,12 @@
+[Unit]
+AssertPathExists=/usr/bin/commentary
+
+[Service]
+WorkingDirectory=~
+ExecStart=/usr/bin/commentary
+Restart=always
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

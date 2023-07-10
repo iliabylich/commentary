@@ -1,6 +1,6 @@
 {
     "databasePath": "/data/commentary.sqlite3?mode=rwc",
-    "listenOn": 3000,
+    "listenOn": 3001,
     "gmailEmail": "me@gmail.com",
     "gmailPassword": "sekret"
 }
