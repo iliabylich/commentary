@@ -58,4 +58,20 @@ impl Database {
         .await
         .expect("Failed to fetch comments")
     }
+
+    pub(crate) async fn get_new_comments(&self) -> Vec<Comment> {
+        let comments = sqlx::query_as::<_, Comment>(
+            "SELECT * FROM comments WHERE sent = FALSE ORDER BY created_at DESC",
+        )
+        .fetch_all(&self.pool)
+        .await
+        .expect("Failed to fetch new comments");
+
+        sqlx::query("UPDATE comments SET sent = TRUE WHERE sent = FALSE")
+            .execute(&self.pool)
+            .await
+            .expect("Failed to update comments");
+
+        comments
+    }
 }

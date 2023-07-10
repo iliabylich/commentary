@@ -1,6 +1,7 @@
 mod comment;
 mod config;
 mod database;
+mod mailer;
 mod resource;
 mod state;
 mod web;
@@ -8,7 +9,12 @@ mod web;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     use crate::{
-        comment::Comment, config::Config, database::Database, resource::Resources, state::AppState,
+        comment::Comment,
+        config::Config,
+        database::Database,
+        mailer::{Gmail, Mailer},
+        resource::Resources,
+        state::AppState,
         web::Web,
     };
 
@@ -19,10 +25,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Comment::create_table(&db).await;
 
     let resources = Resources::new();
+    let mailer = Gmail::from_global_config();
 
-    let state = AppState::new(db, resources);
+    let state = AppState::new(db, resources, mailer);
 
-    Web::spawn(state).await;
+    tokio::join!(Web::spawn(state.clone()), Mailer::spawn(state.clone()),);
 
     Ok(())
 }

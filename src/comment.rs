@@ -7,6 +7,7 @@ pub(crate) struct Comment {
     pub(crate) body: String,
     pub(crate) created_at: chrono::DateTime<chrono::Utc>,
     pub(crate) post_id: String,
+    pub(crate) sent: bool,
 }
 
 const CRETE_COMMENTS_TABLE_SQL: &str = r#"
@@ -15,7 +16,8 @@ const CRETE_COMMENTS_TABLE_SQL: &str = r#"
         author TEXT NOT NULL,
         body TEXT NOT NULL,
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        post_id TEXT NOT NULL
+        post_id TEXT NOT NULL,
+        sent BOOLEAN NOT NULL DEFAULT FALSE
     )
 "#;
 

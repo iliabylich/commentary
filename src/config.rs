@@ -5,6 +5,8 @@ use tokio::sync::OnceCell;
 pub(crate) struct Config {
     pub(crate) database_path: String,
     pub(crate) listen_on: u16,
+    pub(crate) gmail_email: String,
+    pub(crate) gmail_password: String,
 }
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
