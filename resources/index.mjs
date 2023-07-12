@@ -116,3 +116,6 @@ class App extends Component {
 
 render(html`<${App} />`, document.body);
 publishResize();
+
+addEventListener("resize", publishResize)
+new ResizeObserver(publishResize).observe(document.querySelector("textarea"))
