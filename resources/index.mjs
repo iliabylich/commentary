@@ -15,6 +15,10 @@ const loadComments = async () => {
     return await res.json();
 };
 
+const publishResize = () => {
+    window.top.postMessage({ type: 'resize', height: document.body.scrollHeight }, '*');
+};
+
 const createComment = async (comment) => {
     const res = await fetch('/commentary/comment', {
         method: 'POST',
@@ -50,6 +54,10 @@ class Form extends Component {
         if (this.state.body.trim() === '') return;
         this.props.addComment(this.state);
         this.setState({ author: '', body: '' });
+    }
+
+    componentDidUpdate() {
+        publishResize();
     }
 
     render() {
@@ -107,3 +115,4 @@ class App extends Component {
 }
 
 render(html`<${App} />`, document.body);
+publishResize();
