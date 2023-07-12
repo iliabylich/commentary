@@ -85,7 +85,7 @@ class Form extends Component {
                         />
                     </div>
 
-                    <button class="btn btn-success" onClick=${this.submit}>Confirm identity</button>
+                    <button class="btn btn-success" onClick=${this.submit}>Add comment</button>
                 </div>
             </div>`;
     }
