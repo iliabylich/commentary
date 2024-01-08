@@ -20,7 +20,7 @@ impl Config {
             String::from("/etc/commentary.json")
         };
 
-        let config_file = std::fs::read_to_string(&path).expect("Failed to read config file");
+        let config_file = std::fs::read_to_string(path).expect("Failed to read config file");
         let config: Config =
             serde_json::from_str(&config_file).expect("Failed to parse config file");
         CONFIG.set(config).expect("Config has already been loaded");

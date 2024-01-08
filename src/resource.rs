@@ -9,7 +9,7 @@ pub(crate) struct Resource(&'static str);
 
 impl Resource {
     pub(crate) fn render(&self) -> String {
-        let asset = Asset::get(&self.0).unwrap();
+        let asset = Asset::get(self.0).unwrap();
         let data = asset.data.as_ref();
         std::str::from_utf8(data).unwrap().to_string()
     }
