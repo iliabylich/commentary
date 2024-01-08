@@ -1,30 +1,17 @@
+use rust_embed::RustEmbed;
+
+#[derive(RustEmbed)]
+#[folder = "resources/"]
+struct Asset;
+
 #[derive(Debug, Clone)]
-pub(crate) struct Resource {
-    pub(crate) path: String,
-    pub(crate) embedded_src: &'static str,
-}
+pub(crate) struct Resource(&'static str);
 
 impl Resource {
-    pub(crate) fn new(path: String, embedded_src: &'static str) -> Self {
-        Self { path, embedded_src }
-    }
-
-    async fn render_debug(&self) -> String {
-        tokio::fs::read_to_string(&self.path)
-            .await
-            .expect("Failed to read file")
-    }
-
-    async fn render_release(&self) -> String {
-        self.embedded_src.to_string()
-    }
-
-    pub(crate) async fn render(&self) -> String {
-        if cfg!(debug_assertions) {
-            self.render_debug().await
-        } else {
-            self.render_release().await
-        }
+    pub(crate) fn render(&self) -> String {
+        let asset = Asset::get(&self.0).unwrap();
+        let data = asset.data.as_ref();
+        std::str::from_utf8(data).unwrap().to_string()
     }
 }
 
@@ -42,20 +29,8 @@ pub(crate) struct Resources {
 impl Resources {
     pub(crate) fn new() -> Self {
         let map = std::collections::HashMap::from([
-            (
-                ResourceId::IndexHtml,
-                Resource::new(
-                    String::from("resources/index.html"),
-                    include_str!("../resources/index.html"),
-                ),
-            ),
-            (
-                ResourceId::IndexMjs,
-                Resource::new(
-                    String::from("resources/index.mjs"),
-                    include_str!("../resources/index.mjs"),
-                ),
-            ),
+            (ResourceId::IndexHtml, Resource("index.html")),
+            (ResourceId::IndexMjs, Resource("index.mjs")),
         ]);
         Self { map }
     }

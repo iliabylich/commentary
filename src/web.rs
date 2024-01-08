@@ -34,12 +34,12 @@ impl Web {
     }
 
     async fn index_html(State(state): State<AppState>) -> Html<String> {
-        let html = state.resources.get(ResourceId::IndexHtml).render().await;
+        let html = state.resources.get(ResourceId::IndexHtml).render();
         Html(html)
     }
 
     async fn index_mjs(State(state): State<AppState>) -> impl IntoResponse {
-        let js = state.resources.get(ResourceId::IndexMjs).render().await;
+        let js = state.resources.get(ResourceId::IndexMjs).render();
         (StatusCode::OK, [("content-type", "text/javascript")], js)
     }
 

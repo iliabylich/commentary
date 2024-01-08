@@ -23,7 +23,8 @@ sqlx = { version = "0.7", features = [
   "runtime-tokio-rustls",
   "chrono",
 ] }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
+rust-embed = "8.2"
 
 [package.metadata.deb]
 assets = [
