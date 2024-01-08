@@ -20,8 +20,8 @@ impl Web {
                     .route("/index", get(Self::index_html))
                     .route("/index.mjs", get(Self::index_mjs))
                     .route("/output.css", get(Self::output_css))
-                    .route("/comments", get(Self::get_comments))
-                    .route("/comment", post(Self::comment)),
+                    .route("/comments.json", get(Self::comments_json))
+                    .route("/leave-comment", post(Self::leave_comment)),
             )
             .with_state(state);
 
@@ -54,7 +54,7 @@ impl Web {
         )
     }
 
-    async fn get_comments(
+    async fn comments_json(
         State(state): State<AppState>,
         query: Query<PostId>,
     ) -> Json<Vec<Comment>> {
@@ -62,7 +62,7 @@ impl Web {
         Json(comments)
     }
 
-    async fn comment(
+    async fn leave_comment(
         State(state): State<AppState>,
         Json(payload): Json<CreateComment>,
     ) -> Json<Comment> {

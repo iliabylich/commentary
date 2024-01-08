@@ -12,7 +12,28 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <form is="commentary-form">
+    <header>Leave a comment (anonymously if you prefer)</header>
+
+    <fieldset>
+      <input name="author" type="text" placeholder="Name (optional)" />
+      <textarea name="body" placeholder="Comment (markdown is supported)"></textarea>
+      <input type="submit" value="Add comment" />
+    </fieldset>
+  </form>
+
+  <commentary-comments>
+  </commentary-comments>
+
+  <template id="commentary-comment-template">
+    <article>
+      <header>
+      </header>
+
+      <p>
+      </p>
+    </article>
+  </template>
 </body>
 
 </html>
