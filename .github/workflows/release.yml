@@ -26,13 +26,24 @@ jobs:
         run: cargo install cargo-deb
 
       - name: build
-        run: cargo deb
+        run: cargo deb --deb-revision="$(date +%s)"
 
       - name: release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
+          removeArtifacts: true
           tag: latest
-          artifacts: target/release/commentary,target/debian/commentary_0.1.0_amd64.deb
+          artifacts: target/release/commentary,target/debian/*.deb
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: refresh PPA
+        run: |
+          curl -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.PPA_TOKEN }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/iliabylich/ppa/actions/workflows/refresh.yml/dispatches \
+            -d '{"ref":"master"}'
