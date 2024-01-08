@@ -3,9 +3,9 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse, Json},
     routing::{get, post},
-    Router, Server,
+    Router,
 };
-use std::net::SocketAddr;
+use tokio::net::TcpListener;
 
 use crate::{comment::Comment, config::Config, resource::ResourceId, state::AppState};
 
@@ -24,11 +24,11 @@ impl Web {
             )
             .with_state(state);
 
-        let addr = SocketAddr::from(([0, 0, 0, 0], Config::global().listen_on));
-        println!("Listening on {}", addr);
+        let port = Config::global().listen_on;
+        let listener = TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();
+        println!("Listening on {}", listener.local_addr().unwrap());
 
-        Server::bind(&addr)
-            .serve(app.into_make_service())
+        axum::serve(listener, app)
             .await
             .expect("Failed to spawn web server");
     }
