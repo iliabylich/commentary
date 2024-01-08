@@ -13,7 +13,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         config::Config,
         database::Database,
         mailer::{Gmail, Mailer},
-        resource::Resources,
         state::AppState,
         web::Web,
     };
@@ -24,10 +23,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db = Database::new().await;
     Comment::create_table(&db).await;
 
-    let resources = Resources::new();
     let mailer = Gmail::from_global_config();
 
-    let state = AppState::new(db, resources, mailer);
+    let state = AppState::new(db, mailer);
 
     tokio::join!(Web::spawn(state.clone()), Mailer::spawn(state.clone()),);
 

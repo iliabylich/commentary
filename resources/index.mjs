@@ -32,12 +32,12 @@ const Comment = (props) => {
     const { author, body, created_at } = props.comment;
 
     return html`
-        <div class="card mb-3">
-            <div class="card-header">
+        <div class="relative flex flex-col min-w-0 rounded break-words border bg-white border-1 border-gray-300 mb-3">
+            <div class="py-3 px-6 mb-0 bg-gray-200 border-b-1 border-gray-300 text-gray-900">
                 by <i>${author || 'Anonymous'}</i> (${formatDate(created_at)})
             </div>
 
-            <div class="card-body" dangerouslySetInnerHTML="${{ __html: renderMarkdown(body) }}"></div>
+            <div class="flex-auto p-6" dangerouslySetInnerHTML="${{ __html: renderMarkdown(body) }}"></div>
         </div>`;
 };
 
@@ -62,14 +62,14 @@ class Form extends Component {
 
     render() {
         return html`
-            <div class="card bg-info-subtle mb-3">
-                <div class="card-header">Leave a comment (anonymously if you prefer)</div>
+            <div class="relative flex flex-col min-w-0 rounded break-words border bg-gray-200 border-1 border-gray-300 mb-3">
+                <div class="px-4 py-3 mb-0 bg-gray-200 border-b-1 border-gray-400 text-gray-900">Leave a comment (anonymously if you prefer)</div>
 
-                <div class="card-body">
+                <div class="flex-auto px-4 py-6">
                     <div class="mb-3">
                         <input
                             type="text"
-                            class="form-control"
+                            class="block appearance-none w-full py-1 px-2 mb-1 text-base leading-normal bg-white text-gray-800 border border-gray-200 rounded"
                             value=${this.state.author}
                             onChange=${this.setAuthor}
                             placeholder="Name (optional)"
@@ -78,14 +78,14 @@ class Form extends Component {
 
                     <div class="mb-3">
                         <textarea
-                            class="form-control"
+                            class="block appearance-none w-full py-1 px-2 mb-1 text-base leading-normal bg-white text-gray-800 border border-gray-200 rounded"
                             value=${this.state.body}
                             onChange=${this.setBody}
                             placeholder="Comment (markdown is supported)"
                         />
                     </div>
 
-                    <button class="btn btn-success" onClick=${this.submit}>Add comment</button>
+                    <button class="inline-block align-middle text-center select-none border font-normal whitespace-no-wrap rounded py-1 px-3 leading-normal no-underline bg-green-500 text-white hover:green-600" onClick=${this.submit}>Add comment</button>
                 </div>
             </div>`;
     }
@@ -106,7 +106,7 @@ class App extends Component {
     }
 
     render() {
-        return html`<div class="container-fluid">
+        return html`<div class="container mx-auto sm:px-4 max-w-full">
             <${Form} addComment=${this.addComment} />
 
             ${this.state.comments.map(comment => html`<${Comment} comment=${comment} />`)}
@@ -114,7 +114,8 @@ class App extends Component {
     }
 }
 
-render(html`<${App} />`, document.body);
+const root = document.getElementById("root");
+render(html`<${App} />`, root);
 publishResize();
 
 addEventListener("resize", publishResize)

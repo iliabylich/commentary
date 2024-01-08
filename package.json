@@ -1,0 +1,15 @@
+{
+  "name": "commentary",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build:debug": "tailwindcss -i resources/index.css -o ./resources/output.css --watch",
+    "build:release": "tailwindcss -i resources/index.css -o ./resources/output.css --minify"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

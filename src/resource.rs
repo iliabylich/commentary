@@ -2,40 +2,23 @@ use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
 #[folder = "resources/"]
-struct Asset;
+pub(crate) struct Asset;
 
-#[derive(Debug, Clone)]
-pub(crate) struct Resource(&'static str);
-
-impl Resource {
-    pub(crate) fn render(&self) -> String {
-        let asset = Asset::get(self.0).unwrap();
-        let data = asset.data.as_ref();
-        std::str::from_utf8(data).unwrap().to_string()
-    }
-}
-
-#[derive(Debug, Hash, PartialEq, Eq, Clone)]
-pub(crate) enum ResourceId {
-    IndexHtml,
-    IndexMjs,
-}
-
-#[derive(Debug, Clone)]
-pub(crate) struct Resources {
-    pub(crate) map: std::collections::HashMap<ResourceId, Resource>,
-}
-
-impl Resources {
-    pub(crate) fn new() -> Self {
-        let map = std::collections::HashMap::from([
-            (ResourceId::IndexHtml, Resource("index.html")),
-            (ResourceId::IndexMjs, Resource("index.mjs")),
-        ]);
-        Self { map }
+impl Asset {
+    pub(crate) fn index_html() -> String {
+        Self::render("index.html")
     }
 
-    pub(crate) fn get(&self, id: ResourceId) -> &Resource {
-        self.map.get(&id).expect("Resource not found")
+    pub(crate) fn index_mjs() -> String {
+        Self::render("index.mjs")
+    }
+
+    pub(crate) fn output_css() -> String {
+        Self::render("output.css")
+    }
+
+    fn render(path: &str) -> String {
+        let asset = Self::get(path).unwrap();
+        String::from_utf8(asset.data.to_vec()).unwrap()
     }
 }

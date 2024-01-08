@@ -7,7 +7,7 @@ use axum::{
 };
 use tokio::net::TcpListener;
 
-use crate::{comment::Comment, config::Config, resource::ResourceId, state::AppState};
+use crate::{comment::Comment, config::Config, resource::Asset, state::AppState};
 
 pub(crate) struct Web;
 
@@ -19,6 +19,7 @@ impl Web {
                 Router::new()
                     .route("/index", get(Self::index_html))
                     .route("/index.mjs", get(Self::index_mjs))
+                    .route("/output.css", get(Self::output_css))
                     .route("/comments", get(Self::get_comments))
                     .route("/comment", post(Self::comment)),
             )
@@ -33,14 +34,24 @@ impl Web {
             .expect("Failed to spawn web server");
     }
 
-    async fn index_html(State(state): State<AppState>) -> Html<String> {
-        let html = state.resources.get(ResourceId::IndexHtml).render();
-        Html(html)
+    async fn index_html() -> Html<String> {
+        Html(Asset::index_html())
     }
 
-    async fn index_mjs(State(state): State<AppState>) -> impl IntoResponse {
-        let js = state.resources.get(ResourceId::IndexMjs).render();
-        (StatusCode::OK, [("content-type", "text/javascript")], js)
+    async fn index_mjs() -> impl IntoResponse {
+        (
+            StatusCode::OK,
+            [("content-type", "text/javascript")],
+            Asset::index_mjs(),
+        )
+    }
+
+    async fn output_css() -> impl IntoResponse {
+        (
+            StatusCode::OK,
+            [("content-type", "text/css")],
+            Asset::output_css(),
+        )
     }
 
     async fn get_comments(

@@ -1,18 +1,13 @@
-use crate::{database::Database, mailer::Gmail, resource::Resources};
+use crate::{database::Database, mailer::Gmail};
 
 #[derive(Clone)]
 pub(crate) struct AppState {
     pub(crate) database: Database,
-    pub(crate) resources: Resources,
     pub(crate) mailer: Gmail,
 }
 
 impl AppState {
-    pub(crate) fn new(database: Database, resources: Resources, mailer: Gmail) -> Self {
-        Self {
-            database,
-            resources,
-            mailer,
-        }
+    pub(crate) fn new(database: Database, mailer: Gmail) -> Self {
+        Self { database, mailer }
     }
 }
