@@ -12,18 +12,17 @@ pub(crate) struct Config {
 
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
 
+#[cfg(debug_assertions)]
+const CONFIG_PATH: &str = "config.json";
+
+#[cfg(not(debug_assertions))]
+const CONFIG_PATH: &str = "/etc/commentary.json";
+
 impl Config {
     pub(crate) fn load() -> Result<()> {
-        let path = if cfg!(debug_assertions) {
-            std::env::var("COMMENTARY_CONFIG_PATH")
-                .context("No COMMENTARY_CONFIG_PATH environment variable set")?
-        } else {
-            String::from("/etc/commentary.json")
-        };
-
-        let config_file = std::fs::read_to_string(path).context("Failed to read config file")?;
+        let file = std::fs::File::open(CONFIG_PATH).context("Failed to open config file")?;
         let config: Config =
-            serde_json::from_str(&config_file).context("Failed to parse config file")?;
+            serde_json::from_reader::<_, Config>(&file).context("Failed to parse config file")?;
         CONFIG.set(config).context("Config has already been loaded")
     }
 
