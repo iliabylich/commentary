@@ -1,18 +1,19 @@
+use anyhow::{Context, Result};
 use axum::{
     extract::{Query, State},
     http::StatusCode,
-    response::{Html, IntoResponse, Json},
+    response::{Html, IntoResponse, Json, Response},
     routing::{get, post},
     Router,
 };
 use tokio::net::TcpListener;
 
-use crate::{comment::Comment, config::Config, resource::Asset, state::AppState};
+use crate::{app_error::AppError, config::Config, resource::Asset, state::AppState};
 
 pub(crate) struct Web;
 
 impl Web {
-    pub(crate) async fn spawn(state: AppState) {
+    pub(crate) async fn spawn(state: AppState) -> Result<()> {
         let app = Router::new()
             .nest(
                 "/commentary",
@@ -25,52 +26,63 @@ impl Web {
             )
             .with_state(state);
 
-        let port = Config::global().listen_on;
-        let listener = TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap();
-        println!("Listening on {}", listener.local_addr().unwrap());
+        let port = Config::global()?.listen_on;
+        let listener = TcpListener::bind(format!("0.0.0.0:{port}"))
+            .await
+            .context("Failed to bind to port")?;
+        println!(
+            "Listening on {}",
+            listener
+                .local_addr()
+                .context("Failed to get local address")?
+        );
 
         axum::serve(listener, app)
             .await
-            .expect("Failed to spawn web server");
+            .context("Failed to spawn web server")?;
+
+        Ok(())
     }
 
-    async fn index_html() -> Html<String> {
-        Html(Asset::index_html())
+    async fn index_html() -> Result<Response, AppError> {
+        Ok(Html(Asset::index_html()?).into_response())
     }
 
-    async fn index_mjs() -> impl IntoResponse {
-        (
+    async fn index_mjs() -> Result<Response, AppError> {
+        Ok((
             StatusCode::OK,
             [("content-type", "text/javascript")],
-            Asset::index_mjs(),
+            Asset::index_mjs()?,
         )
+            .into_response())
     }
 
-    async fn output_css() -> impl IntoResponse {
-        (
+    async fn output_css() -> Result<Response, AppError> {
+        Ok((
             StatusCode::OK,
             [("content-type", "text/css")],
-            Asset::output_css(),
+            Asset::output_css()?,
         )
+            .into_response())
     }
 
     async fn comments_json(
         State(state): State<AppState>,
         query: Query<PostId>,
-    ) -> Json<Vec<Comment>> {
-        let comments = state.database.get_comments(&query.post_id).await;
-        Json(comments)
+    ) -> Result<Response, AppError> {
+        let comments = state.database.get_comments(&query.post_id).await?;
+        Ok(Json(comments).into_response())
     }
 
     async fn leave_comment(
         State(state): State<AppState>,
         Json(payload): Json<CreateComment>,
-    ) -> Json<Comment> {
+    ) -> Result<Response, AppError> {
         let comment = state
             .database
             .create_comment(&payload.author, &payload.body, &payload.post_id)
-            .await;
-        Json(comment)
+            .await?;
+        Ok(Json(comment).into_response())
     }
 }
 

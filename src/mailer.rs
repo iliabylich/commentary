@@ -1,31 +1,37 @@
+use anyhow::{Context, Result};
 use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials, AsyncSmtpTransport,
     AsyncTransport, Message, Tokio1Executor,
 };
 
-use crate::{comment::Comment, state::AppState};
+use crate::{comment::Comment, config::Config, state::AppState};
 
 pub(crate) struct Mailer;
 
 impl Mailer {
-    pub(crate) async fn spawn(state: AppState) {
+    pub(crate) async fn spawn(state: AppState) -> Result<()> {
         let mut interval = tokio::time::interval(std::time::Duration::from_secs(20));
         tokio::task::spawn(async move {
             loop {
                 interval.tick().await;
-                Self::tick(state.clone()).await;
+                match Self::tick(state.clone()).await {
+                    Ok(_) => {}
+                    Err(err) => {
+                        eprintln!("Failed to tick mailer: {:?}", err);
+                    }
+                }
             }
         })
         .await
-        .expect("Failed to spawn mailer task");
+        .context("Failed to spawn mailer task")
     }
 
-    async fn tick(state: AppState) {
-        let new_comments = state.database.get_new_comments().await;
+    async fn tick(state: AppState) -> Result<()> {
+        let new_comments = state.database.get_new_comments().await?;
         if new_comments.is_empty() {
-            return;
+            return Ok(());
         }
-        state.mailer.send_new_comments(&new_comments).await;
+        state.mailer.send_new_comments(&new_comments).await
     }
 }
 
@@ -34,8 +40,8 @@ pub(crate) struct Gmail {
     mailer: AsyncSmtpTransport<Tokio1Executor>,
 }
 impl Gmail {
-    pub(crate) fn from_global_config() -> Self {
-        let config = crate::config::Config::global();
+    pub(crate) fn from_global_config() -> Result<Self> {
+        let config = Config::global()?;
 
         let credentials = Credentials::new(
             config.gmail_email.to_owned(),
@@ -43,10 +49,10 @@ impl Gmail {
         );
 
         let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay("smtp.gmail.com")
-            .expect("Failed to create mailer")
+            .context("Failed to create mailer")?
             .credentials(credentials)
             .build();
-        Self { mailer }
+        Ok(Self { mailer })
     }
 
     async fn send_message(&self, message: Message) {
@@ -56,7 +62,7 @@ impl Gmail {
         }
     }
 
-    async fn send_new_comments(&self, comments: &[Comment]) {
+    async fn send_new_comments(&self, comments: &[Comment]) -> Result<()> {
         let body = comments
             .iter()
             .map(|comment| {
@@ -72,16 +78,18 @@ impl Gmail {
             .from(
                 "Commentary app <ibylich@gmail.com>"
                     .parse()
-                    .expect("Invalid email"),
+                    .context("Invalid email")?,
             )
             .to("Ilya Bylich <ibylich@gmail.com>"
                 .parse()
-                .expect("Invalid email"))
+                .context("Invalid email")?)
             .subject("New comment")
             .header(ContentType::TEXT_PLAIN)
             .body(body)
-            .expect("Failed to build email message");
+            .context("Failed to build email message")?;
 
         self.send_message(message).await;
+
+        Ok(())
     }
 }

@@ -1,3 +1,5 @@
+use anyhow::{Context, Result};
+
 use crate::database::Database;
 
 #[derive(sqlx::FromRow, Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -22,11 +24,12 @@ const CRETE_COMMENTS_TABLE_SQL: &str = r#"
 "#;
 
 impl Comment {
-    pub(crate) async fn create_table(database: &Database) {
+    pub(crate) async fn create_table(database: &Database) -> Result<()> {
         sqlx::query(CRETE_COMMENTS_TABLE_SQL)
             .execute(&database.pool)
             .await
-            .expect("failed to create `comments` table");
+            .context("failed to create `comments` table")?;
         println!("Created `comments` table");
+        Ok(())
     }
 }

@@ -1,3 +1,4 @@
+mod app_error;
 mod comment;
 mod config;
 mod database;
@@ -7,7 +8,7 @@ mod state;
 mod web;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> anyhow::Result<()> {
     use crate::{
         comment::Comment,
         config::Config,
@@ -17,17 +18,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         web::Web,
     };
 
-    Config::load();
+    Config::load()?;
     println!("Running with config {:?}", Config::global());
 
-    let db = Database::new().await;
-    Comment::create_table(&db).await;
+    let db = Database::new().await?;
+    Comment::create_table(&db).await?;
 
-    let mailer = Gmail::from_global_config();
+    let mailer = Gmail::from_global_config()?;
 
     let state = AppState::new(db, mailer);
 
-    tokio::join!(Web::spawn(state.clone()), Mailer::spawn(state.clone()),);
+    tokio::try_join!(Web::spawn(state.clone()), Mailer::spawn(state.clone()),)?;
 
     Ok(())
 }

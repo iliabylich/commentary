@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use tokio::sync::OnceCell;
 
 #[derive(serde::Deserialize, Debug)]
@@ -12,21 +13,21 @@ pub(crate) struct Config {
 static CONFIG: OnceCell<Config> = OnceCell::const_new();
 
 impl Config {
-    pub(crate) fn load() {
+    pub(crate) fn load() -> Result<()> {
         let path = if cfg!(debug_assertions) {
             std::env::var("COMMENTARY_CONFIG_PATH")
-                .expect("No COMMENTARY_CONFIG_PATH environment variable set")
+                .context("No COMMENTARY_CONFIG_PATH environment variable set")?
         } else {
             String::from("/etc/commentary.json")
         };
 
-        let config_file = std::fs::read_to_string(path).expect("Failed to read config file");
+        let config_file = std::fs::read_to_string(path).context("Failed to read config file")?;
         let config: Config =
-            serde_json::from_str(&config_file).expect("Failed to parse config file");
-        CONFIG.set(config).expect("Config has already been loaded");
+            serde_json::from_str(&config_file).context("Failed to parse config file")?;
+        CONFIG.set(config).context("Config has already been loaded")
     }
 
-    pub(crate) fn global() -> &'static Config {
-        CONFIG.get().expect("Config is not loaded")
+    pub(crate) fn global() -> Result<&'static Config> {
+        CONFIG.get().context("Config is not loaded")
     }
 }

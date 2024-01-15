@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
@@ -5,20 +6,20 @@ use rust_embed::RustEmbed;
 pub(crate) struct Asset;
 
 impl Asset {
-    pub(crate) fn index_html() -> String {
+    pub(crate) fn index_html() -> Result<String> {
         Self::render("index.html")
     }
 
-    pub(crate) fn index_mjs() -> String {
+    pub(crate) fn index_mjs() -> Result<String> {
         Self::render("index.mjs")
     }
 
-    pub(crate) fn output_css() -> String {
+    pub(crate) fn output_css() -> Result<String> {
         Self::render("output.css")
     }
 
-    fn render(path: &str) -> String {
-        let asset = Self::get(path).unwrap();
-        String::from_utf8(asset.data.to_vec()).unwrap()
+    fn render(path: &str) -> Result<String> {
+        let asset = Self::get(path).context("Failed to get asset")?;
+        String::from_utf8(asset.data.to_vec()).context("Failed to convert asset to string")
     }
 }

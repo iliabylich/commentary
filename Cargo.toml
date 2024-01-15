@@ -25,6 +25,7 @@ sqlx = { version = "0.7", features = [
 ] }
 tokio = { version = "1.0", features = ["rt-multi-thread", "macros"] }
 rust-embed = "8.2"
+anyhow = "1.0"
 
 [profile.release]
 opt-level = "z"
