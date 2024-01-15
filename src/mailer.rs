@@ -42,11 +42,7 @@ pub(crate) struct Gmail {
 impl Gmail {
     pub(crate) fn from_global_config() -> Result<Self> {
         let config = Config::global()?;
-
-        let credentials = Credentials::new(
-            config.gmail_email.to_owned(),
-            config.gmail_password.to_owned(),
-        );
+        let credentials = Credentials::from((&config.gmail_email, &config.gmail_password));
 
         let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay("smtp.gmail.com")
             .context("Failed to create mailer")?

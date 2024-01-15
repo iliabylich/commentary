@@ -29,30 +29,21 @@ impl Database {
         body: &str,
         post_id: &str,
     ) -> Result<Comment> {
-        let commant_id = sqlx::query(
-            r#"
-            INSERT INTO comments (author, body, post_id)
-            VALUES (?, ?, ?)
-        "#,
-        )
-        .bind(author)
-        .bind(body)
-        .bind(post_id)
-        .execute(&self.pool)
-        .await
-        .context("Failed to insert a comment")?
-        .last_insert_rowid();
+        let commant_id =
+            sqlx::query("INSERT INTO comments (author, body, post_id) VALUES (?, ?, ?)")
+                .bind(author)
+                .bind(body)
+                .bind(post_id)
+                .execute(&self.pool)
+                .await
+                .context("Failed to insert a comment")?
+                .last_insert_rowid();
 
-        sqlx::query_as::<_, Comment>(
-            r#"
-            SELECT * FROM comments
-            WHERE id = ?
-            "#,
-        )
-        .bind(commant_id)
-        .fetch_one(&self.pool)
-        .await
-        .context("Failed to fetch comment")
+        sqlx::query_as::<_, Comment>("SELECT * FROM comments WHERE id = ?")
+            .bind(commant_id)
+            .fetch_one(&self.pool)
+            .await
+            .context("Failed to fetch comment")
     }
 
     pub(crate) async fn get_comments(&self, post_id: &str) -> Result<Vec<Comment>> {
