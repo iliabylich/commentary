@@ -1,14 +1,19 @@
 use anyhow::{Context, Result};
+use askama::Template;
 use axum::{
     extract::{Query, State},
-    http::StatusCode,
     response::{Html, IntoResponse, Json, Response},
     routing::{get, post},
     Router,
 };
 use tokio::net::TcpListener;
 
-use crate::{app_error::AppError, config::Config, resource::Asset, state::AppState};
+use crate::{
+    app_error::AppError,
+    config::Config,
+    state::AppState,
+    template::{CommentPartial, Index},
+};
 
 pub(crate) struct Web;
 
@@ -19,9 +24,6 @@ impl Web {
                 "/commentary",
                 Router::new()
                     .route("/index", get(index_html))
-                    .route("/index.mjs", get(index_mjs))
-                    .route("/output.css", get(output_css))
-                    .route("/comments.json", get(comments_json))
                     .route("/leave-comment", post(leave_comment)),
             )
             .with_state(state);
@@ -45,45 +47,28 @@ impl Web {
     }
 }
 
-async fn index_html() -> Result<Response, AppError> {
-    Ok(Html(Asset::index_html()?).into_response())
-}
-
-async fn index_mjs() -> Result<Response, AppError> {
-    Ok((
-        StatusCode::OK,
-        [("content-type", "text/javascript")],
-        Asset::index_mjs()?,
-    )
-        .into_response())
-}
-
-async fn output_css() -> Result<Response, AppError> {
-    Ok((
-        StatusCode::OK,
-        [("content-type", "text/css")],
-        Asset::output_css()?,
-    )
-        .into_response())
-}
-
 #[derive(serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct PostIdParam {
-    pub(crate) post_id: String,
+struct IndexParams {
+    post_id: String,
 }
 
-async fn comments_json(
+async fn index_html(
+    Query(query): Query<IndexParams>,
     State(state): State<AppState>,
-    query: Query<PostIdParam>,
 ) -> Result<Response, AppError> {
     let comments = state.database.get_comments(&query.post_id).await?;
-    Ok(Json(comments).into_response())
+
+    let html = Index {
+        comments: &comments,
+        post_id: &query.post_id,
+    }
+    .render()?;
+    Ok(Html(html).into_response())
 }
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct LeaveCommentPayload {
+pub(crate) struct LeaveCommentParams {
     pub(crate) author: String,
     pub(crate) body: String,
     pub(crate) post_id: String,
@@ -91,11 +76,12 @@ pub(crate) struct LeaveCommentPayload {
 
 async fn leave_comment(
     State(state): State<AppState>,
-    Json(payload): Json<LeaveCommentPayload>,
+    Json(params): Json<LeaveCommentParams>,
 ) -> Result<Response, AppError> {
     let comment = state
         .database
-        .create_comment(&payload.author, &payload.body, &payload.post_id)
+        .create_comment(&params.author, &params.body, &params.post_id)
         .await?;
-    Ok(Json(comment).into_response())
+    let html = CommentPartial { comment: &comment }.render()?;
+    Ok(Html(html).into_response())
 }

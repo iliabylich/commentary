@@ -1,11 +1,5 @@
 run:
-    cargo run
-
-tailwind-build:
-    npx tailwindcss -i resources/index.css -o ./resources/output.css --minify
-
-tailwind-watch:
-    npx tailwindcss -i resources/index.css -o ./resources/output.css --watch
+    cargo watch -x run
 
 build-deb:
     cargo build --target=x86_64-unknown-linux-musl --release

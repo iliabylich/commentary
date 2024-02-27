@@ -3,8 +3,8 @@ mod comment;
 mod config;
 mod database;
 mod mailer;
-mod resource;
 mod state;
+mod template;
 mod web;
 
 #[tokio::main]

@@ -1,0 +1,25 @@
+{% extends "_layout.html" %}
+
+{% block body %}
+
+<commentary-form data-url="/commentary/leave-comment" data-onchange="publishResize">
+  <slot id="header"></slot>
+  <slot id="post-id">{{ post_id }}</slot>
+</commentary-form>
+
+<main>
+  {% for comment in comments %}
+  {% include "_comment.html" %}
+  {% endfor %}
+</main>
+
+<script type="module">
+  window.publishResize = () => {
+    window.top.postMessage({ type: 'resize', height: document.body.scrollHeight }, '*');
+  };
+</script>
+
+<script type="module">{% include "_commentary-form.mjs" %}</script>
+<script type="module">{% include "_commentary-comment.mjs" %}</script>
+
+{% endblock %}

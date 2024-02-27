@@ -20,3 +20,9 @@ impl From<anyhow::Error> for AppError {
         AppError(error)
     }
 }
+
+impl From<askama::Error> for AppError {
+    fn from(error: askama::Error) -> Self {
+        AppError(error.into())
+    }
+}
