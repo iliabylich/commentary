@@ -18,8 +18,14 @@ const CONFIG_PATH: &str = "config.json";
 #[cfg(not(debug_assertions))]
 const CONFIG_PATH: &str = "/etc/commentary.json";
 
+const DEFAULT_CONFIG: &str = include_str!("../config.example.json");
+
 impl Config {
     pub(crate) fn load() -> Result<()> {
+        if !std::path::Path::new(CONFIG_PATH).exists() {
+            std::fs::write(CONFIG_PATH, DEFAULT_CONFIG).unwrap()
+        }
+
         let file = std::fs::File::open(CONFIG_PATH).context("Failed to open config file")?;
         let config: Config =
             serde_json::from_reader::<_, Config>(&file).context("Failed to parse config file")?;
