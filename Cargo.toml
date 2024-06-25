@@ -39,11 +39,6 @@ assets = [
     "755",
   ],
   [
-    "config.example.json",
-    "etc/commentary.example.json",
-    "644",
-  ],
-  [
     "debian/commentary.service",
     "lib/systemd/system/commentary.service",
     "644",
